@@ -1,0 +1,30 @@
+{
+  "name": "세이브어스",
+  "short_name": "세이브어스",
+  "description": "가족 구성에 맞춘 재난 대비 준비물과 상황별 행동 절차",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FBF6EE",
+  "theme_color": "#1E2C3E",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "webicon/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "webicon/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "webicon/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
