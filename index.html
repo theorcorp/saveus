@@ -374,6 +374,11 @@ main{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .counter .cl{flex:1;min-width:0}
 .counter .cl b{display:block;font-size:calc(14px * var(--ts));font-weight:650;letter-spacing:-.2px}
 .counter .cl span{display:block;font-size:calc(11.5px * var(--ts));color:var(--dim);margin-top:1px}
+/* 인원 수에 들어가지 않는 칸은 바탕색과 왼쪽 줄로 구분한다 */
+.counter.opt{background:var(--sunk);box-shadow:inset 3px 0 0 var(--olive)}
+.counter.opt .optag{font-style:normal;font-weight:700;color:var(--olive);
+                    font-size:calc(11.5px * var(--ts));margin-right:1px}
+.counter.opt .nc{color:var(--olive);font-weight:650;margin-top:3px}
 .pm{display:flex;align-items:center;gap:3px;flex:0 0 auto;background:var(--sunk);
     border-radius:11px;padding:3px}
 .pm button{width:32px;height:30px;border-radius:9px;display:grid;place-items:center;
@@ -605,7 +610,8 @@ var DEFAULT_PROFILE={
   chronic:0, dogs:0, dogSize:"mid", cats:0,
   days:7, home:"apt", winter:true,
   lang:null, langChosen:false, ts:2, ready:false,
-  cprVoice:"on"   /* "off" | "on"(기기 음성) | "f" | "m" */
+  cprVoice:"on",  /* "off" | "on"(기기 음성) | "f" | "m" */
+  sani:null       /* 생리용품 필요 인원. null 이면 성인 여성 + 청소년 여 수를 따른다 */
 };
 
 /* 예전 버전(성인/성인 여성) 저장값을 남녀 구분으로 옮긴다 */
@@ -700,6 +706,15 @@ var AGE_KEYS=["adultsM","adultsF","teensM","teensF","kids","infants","seniors"];
 function people(p){ var n=0; AGE_KEYS.forEach(function(k){ n+=p[k]||0; }); return n; }
 function females(p){ return (p.adultsF||0)+(p.teensF||0); }
 function pets(p){ return (p.dogs||0)+(p.cats||0); }
+/* 생리용품 필요 인원.
+   성인 여성이라고 다 필요한 것은 아니다. 폐경 이후면 필요 없고, 청소년 여라도
+   아직 시작하지 않았을 수 있다. 반대로 노약자로 센 여성이 필요할 수도 있다.
+   그래서 따로 세되, 손대지 않으면 여성 수를 그대로 따라간다. */
+function saniCount(p){
+  var cap=people(p);
+  if(p.sani===null || p.sani===undefined) return Math.min(females(p), cap);
+  return Math.max(0, Math.min(p.sani, cap));
+}
 function waterPerDay(p){
   var L=0; AGE_KEYS.forEach(function(k){ L+=(p[k]||0)*WATER[k]; });
   L += (p.dogs||0)*(DOG_WATER[p.dogSize]||DOG_WATER.mid);
@@ -774,7 +789,8 @@ function catalog(p){
   add("wipes", 3,2, up(N*D_*0.3));
   add("soap",  3,1, N);
   add("tp",    3,2, up(N*D_*0.25));
-  if(females(p)>0) add("sani", 3,1, females(p)*80, { n:females(p) });
+  var sn=saniCount(p);
+  if(sn>0) add("sani", 3,1, sn*80, { n:sn });
   add("mask",  3,1, Math.max(N*10, up(N*D_*1.5)));
   add("trash", 3,2, up(N*D_*0.4));
   add("toilet",3,3, up(N*D_*3));
@@ -1632,19 +1648,26 @@ function showLegal(){
 
 /* ---------- 설정 ---------- */
 /* 카운터의 최대값. ctr()과 syncCounter()가 같은 값을 보도록 한 곳에 둔다. */
+/* 사람 수를 세는 칸이 아니라, 위에서 이미 센 사람 중 몇 명인지 표시하는 칸.
+   인원·물·열량 계산에는 들어가지 않는다. 화면에서도 따로 보이게 한다. */
+var CTR_OPT={ sani:1, chronic:1 };
+
 var CTR_MAX={ dogs:10, cats:10 };
-function ctrMax(key){ return CTR_MAX[key]||20; }
+function ctrMax(key){ return key==="sani" ? Math.max(0, people(P)) : (CTR_MAX[key]||20); }
+/* sani 는 null(자동)일 수 있으므로 화면에 보여 줄 값은 따로 구한다 */
+function ctrVal(key){ return key==="sani" ? saniCount(P) : (P[key]||0); }
 
 /* 설정 화면에서 숫자나 선택을 바꿀 때 시트를 통째로 다시 만들면
    스크롤이 맨 위로 튄다. 그래서 바뀐 자리만 고쳐 쓴다. */
 function syncCounter(key){
   var v=document.getElementById("v_"+key);
   if(!v) return;
-  v.textContent=P[key];
+  var cur=ctrVal(key);
+  v.textContent=cur;
   var dec=document.querySelector('[data-act="dec"][data-k="'+key+'"]');
   var inc=document.querySelector('[data-act="inc"][data-k="'+key+'"]');
-  if(dec) dec.disabled = P[key]<=0;
-  if(inc) inc.disabled = P[key]>=ctrMax(key);
+  if(dec) dec.disabled = cur<=0;
+  if(inc) inc.disabled = cur>=ctrMax(key);
 }
 function syncSeg(act,val){
   var ns=document.querySelectorAll('[data-act="'+act+'"]');
@@ -1654,11 +1677,14 @@ function syncSeg(act,val){
 function showSetup(first){
   function ctr(key,max){
     if(max) CTR_MAX[key]=max;
-    return '<div class="counter"><span class="cl"><b>'+h(t("f."+key))+'</b>'+
-      '<span>'+h(t("f."+key+"_s"))+'</span></span>'+
-      '<span class="pm"><button data-act="dec" data-k="'+key+'" '+(P[key]<=0?"disabled":"")+'>−</button>'+
-      '<b id="v_'+key+'">'+P[key]+'</b>'+
-      '<button data-act="inc" data-k="'+key+'" '+(P[key]>=ctrMax(key)?"disabled":"")+'>+</button></span></div>';
+    var opt=!!CTR_OPT[key];
+    return '<div class="counter'+(opt?" opt":"")+'"><span class="cl">'+
+      '<b>'+(opt?'<i class="optag">'+h(t("f.optional"))+'</i> ':'')+h(t("f."+key))+'</b>'+
+      '<span>'+h(t("f."+key+"_s"))+'</span>'+
+      (opt?'<span class="nc">'+h(t("f.notCounted"))+'</span>':'')+'</span>'+
+      '<span class="pm"><button data-act="dec" data-k="'+key+'" '+(ctrVal(key)<=0?"disabled":"")+'>−</button>'+
+      '<b id="v_'+key+'">'+ctrVal(key)+'</b>'+
+      '<button data-act="inc" data-k="'+key+'" '+(ctrVal(key)>=ctrMax(key)?"disabled":"")+'>+</button></span></div>';
   }
   var b=
   (first?
@@ -1689,7 +1715,7 @@ function showSetup(first){
 
   '<p class="sec-title">'+h(t("setup.family"))+'</p><div class="card">'+
     ctr("adultsM")+ctr("adultsF")+ctr("teensM")+ctr("teensF")+
-    ctr("kids")+ctr("infants")+ctr("seniors")+ctr("chronic")+
+    ctr("kids")+ctr("infants")+ctr("seniors")+ctr("sani")+ctr("chronic")+
   '</div>'+
   '<p class="sec-title">'+h(t("setup.pets"))+'</p><div class="card">'+
     ctr("dogs",10)+
@@ -2259,8 +2285,12 @@ document.body.addEventListener("click",function(e){
 
   if(a==="inc"||a==="dec"){
     var k=b.dataset.k;
-    P[k]=Math.min(ctrMax(k), Math.max(0,(P[k]||0)+(a==="inc"?1:-1)));
-    persistP(); syncCounter(k); return;
+    /* sani 는 손대는 순간 자동 추종을 그만두고 고정값이 된다 */
+    P[k]=Math.min(ctrMax(k), Math.max(0, ctrVal(k)+(a==="inc"?1:-1)));
+    persistP(); syncCounter(k);
+    /* 사람 수가 바뀌면 자동 추종 중인 생리용품 칸도 다시 그린다 */
+    if(k!=="sani") syncCounter("sani");
+    return;
   }
   if(a==="dogsize"){ P.dogSize=b.dataset.v; persistP(); syncSeg("dogsize",P.dogSize); return; }
   if(a==="days"){ P.days=+b.dataset.v; persistP(); syncSeg("days",P.days); return; }
@@ -2272,7 +2302,8 @@ document.body.addEventListener("click",function(e){
     P.ready=true; persistP(); closeSheet(); render(); return;
   }
   if(a==="reset"){
-    CHECKED.clear(); persistC(); closeSheet(); go("home"); toast(t("setup.resetDone")); return;
+    CHECKED.clear(); persistC(); P.sani=null; persistP();
+    closeSheet(); go("home"); toast(t("setup.resetDone")); return;
   }
 });
 

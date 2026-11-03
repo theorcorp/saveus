@@ -1,7 +1,7 @@
 /* 세이브어스 — 인터넷 없이도 열리게 한다.
    한 번 방문하면 모든 파일을 담아 두고, 다음부터는 담아 둔 것을 먼저 쓴다.
    새 버전을 올리면 CACHE 이름이 바뀌어 통째로 다시 받는다. */
-const CACHE = "saveus-202611030952";
+const CACHE = "saveus-202611031159";
 const ASSETS = [
  "./design.css",
  "./design.js",
