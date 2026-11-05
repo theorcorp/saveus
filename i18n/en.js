@@ -105,10 +105,11 @@ act:{
   title:"By situation",
   alarmT:"Reading the civil defence sirens",
   alarms:[
-    ["Alert warning","One minute, steady tone","Get ready to move. Turn on the radio and check your go-bag"],
-    ["Air raid warning","Three minutes, rising and falling tone","Go underground immediately"],
+    ["Alert warning","Voice broadcast","Get ready to move. Turn on the radio and check your go-bag"],
+    ["Air raid warning","One-minute siren + voice broadcast","Go underground immediately"],
+    ["Nuclear attack warning","Same siren as an air raid","Get deep underground at once. The siren is identical, so the voice broadcast is what tells them apart"],
     ["CBRN warning","Broadcast, no siren","Go indoors and seal windows and vents"],
-    ["All clear","One minute, steady tone","It's over. Listen to the broadcast to the end"]
+    ["All clear","Voice broadcast","It's over. Listen to the broadcast to the end"]
   ],
   telT:"Emergency numbers",
   tels:[
@@ -481,6 +482,32 @@ emg:{
       ],
       note:"This covers low blood sugar. It does not include guidance on adjusting your own medication in a high blood sugar emergency.",
       src:"S03, S18"
+    },
+    fever:{
+      t:"Fever",
+      m:"Temperature rises, with chills and listlessness",
+      sym:"38C or above. Chills, aching, poor appetite, more sluggish than usual.",
+      call:"A baby under 3 months at 38C or above needs emergency care at once. Also call immediately if the person is limp or barely responds, is short of breath, has bluish lips or nails, has a seizure lasting over five minutes, or has a rash that does not fade when pressed.",
+      s:[
+          "Take the temperature and write it down with the time. You need the time to work out intervals later.",
+          "Change to a single light layer, keep the room at 22 to 24C and air it out. Only cover briefly with a thin blanket while they are shivering.",
+          "Give water or an oral rehydration drink in small, frequent sips. Do not give extra water to a baby under 6 months without medical advice.",
+          "For fever medicine, follow the weight table on the product leaflet exactly. The dose goes by weight, not age. Ask a pharmacist if you are unsure.",
+          "Write down the time and amount given. The next dose waits for the interval on the leaflet.",
+          "Check again in one or two hours. Watch whether they drink, respond and breathe easily rather than the number.",
+          "Seek care if the fever runs past three days or they get worse."
+        ],
+      no:[
+          "No cold baths, ice packs or tepid sponging. They cause shivering, which can push the temperature higher.",
+          "Never sponge with alcohol. It is absorbed through the skin and can poison.",
+          "Do not pile on blankets to sweat it out. The heat cannot escape.",
+          "Do not alternate two different fever medicines. The times and amounts are easy to confuse.",
+          "Never give aspirin to a child. It risks Reye's syndrome.",
+          "Do not split adult tablets for a child. Use a children's product.",
+          "Give nothing by mouth if they are drowsy or confused."
+        ],
+      age:"A fever in a baby under three months needs care at once, whatever the number. Fever medicine is there to make the person comfortable, not to force the temperature back to normal.",
+      src:"S04 · S19"
     }
   }
 },
@@ -576,10 +603,41 @@ item:{
   kennel:{ n:"Carrier, lead, harness", u:"sets", d:"Many shelters do not take animals. Arrange somewhere in advance" },
   petdoc:{ n:"Vaccination record, registration copy, photo", u:"sets", d:"Shelters ask for it, and it is what proves the animal is yours if it goes missing" }
 },
+open:{ tag:"Protect the people you love" },
+fb:{
+  t:"Suggestions and problems",
+  lead:"This is for fixing the app. <b>It is not a way to call for help.</b> In an emergency, phone 119.",
+  priv:"Do not write anything sensitive, such as an address, phone number or medical condition. Your family card and contacts are never attached.",
+  typeL:"What is this about?",
+  ty1:"A suggestion",
+  ty2:"Something broken",
+  ty3:"A correction to the guidance",
+  ty4:"Something else",
+  textL:"Your message",
+  ph:"Tell us what was awkward, or what you need the app to do.",
+  count:"{n} / 1000 characters",
+  saved:"What you write is kept on this device. On a shared device, clear it when you are done.",
+  unsaved:"This device cannot save it. What you wrote may be lost when the app closes.",
+  to:"Sent to",
+  prev:"Preview what will be sent",
+  note:"The button below opens your mail app. You still have to press send there. If no mail app opens, copy the text and send it yourself.",
+  send:"Open mail app",
+  copy:"Copy message",
+  copyaddr:"Copy address",
+  clear:"Clear what I wrote",
+  clearAsk:"Press again to clear",
+  cleared:"Cleared.",
+  needText:"Please write a message first.",
+  opening:"Your mail app was opened. If nothing happened, copy the message and address and send it yourself.",
+  cantOpen:"No mail app could be opened. Please use the copy buttons.",
+  copied:"Copied.",
+  copyFail:"Could not copy. Please select the text on screen and copy it.",
+  replyKo:"The team reads and replies in Korean. Write in your own language if that is easier — it will be translated."
+},
 sit:{
   siren:{ t:"The sirens have sounded", l:"Start by telling the tones apart",
     s:[
-      ["Identify the tone","An alert warning is one minute of steady tone. An air raid warning is three minutes of rising and falling tone. The all clear is one steady minute again. An air raid warning means move now."],
+      ["Identify the tone","Alert warnings, CBRN warnings and all-clear messages carry no siren at all — only a voice broadcast. The siren sounds for just two warnings, air raid and nuclear attack: a cycle of 2 seconds rising, 3 seconds held at the top and 3 seconds falling, repeating every 8 seconds for one minute. The two sirens are identical, so the voice broadcast is what tells them apart, and either one means go underground now."],
       ["Turn on a radio or TV","Emergency broadcasts and civil defence instructions go out there. If your phone still works, check the alert messages in the 안전디딤돌 (Safety Dideemdol) app too."],
       ["Contact family once","Calls jam and rarely connect. Text messages get through better. Send your location and the agreed meeting point, then stop."],
       ["Take the go-bag and head underground","Go to the nearest civil defence shelter, subway station or basement car park. Do not use the lift."]

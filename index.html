@@ -194,6 +194,7 @@ main{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch}
      background:var(--orange);color:#fff;letter-spacing:-.2px}
 .btn:hover{filter:brightness(1.07)}
 .btn.ghost{background:var(--sunk);color:var(--fg)}
+a.btn{text-decoration:none}
 .btn.block{width:100%}
 
 /* ---------- 홈 ---------- */
@@ -447,6 +448,58 @@ a.tel:active{background:var(--sunk)}
        font-size:calc(13.5px * var(--ts));font-weight:600;z-index:60;
        box-shadow:0 6px 24px rgba(0,0,0,.3);max-width:86%;text-align:center}
 
+/* ---------- 여는 화면 ----------
+   바탕색 #16212D 는 영상 파일에 넣은 #18212D 가 아니다. 영상은 limited
+   range YUV 로 저장되므로 디코딩하면 #16212D 로 돌아온다. 파일에 적은 값을
+   그대로 쓰면 영상 테두리를 따라 가로줄이 보인다. 눈이 가장 잘 잡아내는
+   종류의 차이다. 글자는 영상 안에 구워 넣지 않고
+   여기서 얹는다. 네 언어로 번역되어야 하고, 글자가 또렷해야 한다. */
+#opening{position:fixed;inset:0;z-index:200;background:#16212D;
+         display:grid;place-items:center;overflow:hidden;
+         transition:opacity .25s ease}
+#opening[data-out="1"]{opacity:0}
+.op-stage{position:relative;height:100%;width:100%;max-width:calc(100vh * 9 / 16);
+          margin:0 auto}
+#opVid{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
+.op-tag,.op-mark{position:absolute;left:0;right:0;margin:0;text-align:center;
+                 opacity:0;transition:opacity .45s ease, transform .45s ease;
+                 color:#fff;text-wrap:balance;padding:0 22px}
+.op-tag{top:7.5%;transform:translateY(8px);
+        font-size:clamp(19px, 5.6vw, 29px);font-weight:800;letter-spacing:-.4px;
+        line-height:1.35}
+.op-mark{bottom:7%;transform:translateY(-8px);
+         font-size:clamp(26px, 8.2vw, 42px);font-weight:800;letter-spacing:.22em;
+         text-indent:.22em;color:#F08343}
+.op-tag[data-on="1"],.op-mark[data-on="1"]{opacity:1;transform:none}
+@media (prefers-reduced-motion: reduce){
+  .op-tag,.op-mark{transition:none}
+}
+
+/* ---------- 건의 및 불편 신고 ---------- */
+.fbnote{font-size:calc(12.5px * var(--ts));color:var(--dim);line-height:1.6}
+.fbnote.right{text-align:right;color:var(--faint)}
+.fbnote.danger{color:var(--fg);padding:9px 11px;border-radius:10px;
+               background:var(--sunk);border-left:3px solid var(--danger)}
+.fbnote b{color:var(--fg);font-weight:700}
+.fbsum{font-size:calc(12.5px * var(--ts));color:var(--dim);cursor:pointer;padding:4px 0}
+.fbprev{white-space:pre-wrap;overflow-wrap:anywhere;margin-top:6px;padding:10px 12px;
+        border-radius:10px;background:var(--sunk);font-family:inherit;
+        font-size:calc(12px * var(--ts));color:var(--dim);line-height:1.6}
+.btn.arm{background:var(--danger);color:#fff}
+/* ---------- 해외 안내 / 대피소 ---------- */
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.btnrow .btn{flex:1 1 42%;min-width:0;white-space:nowrap}
+.advlv{display:flex;flex-direction:column;gap:7px}
+.advrow{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 9px;
+        padding:9px 11px;border-radius:10px;background:var(--sunk);
+        border-left:3px solid var(--dim)}
+.advrow.ok{border-left-color:var(--ok)}
+.advrow.warn{border-left-color:var(--orange)}
+.advrow.bad{border-left-color:var(--danger)}
+.advrow b{font-size:calc(13px * var(--ts));font-weight:800;flex:0 0 auto}
+.advrow .en{font-size:calc(11.5px * var(--ts));color:var(--faint)}
+.advrow .ko{flex:1 1 100%;font-size:calc(12.5px * var(--ts));color:var(--fg);line-height:1.5}
+
 .srcnote{display:inline-flex;align-items:center;gap:7px;padding:10px 14px;border-radius:12px;
          background:var(--surface);color:var(--dim);font-size:calc(12.5px * var(--ts));
          font-weight:650;line-height:1.4;word-break:keep-all}
@@ -591,12 +644,24 @@ a.tel:active{background:var(--sunk)}
   </nav>
 </div>
 
+<div id="opening" hidden aria-hidden="true">
+  <div class="op-stage">
+    <video id="opVid" muted playsinline preload="auto" disablepictureinpicture
+           src="video/opening.mp4"></video>
+    <p class="op-tag" id="opTag"></p>
+    <p class="op-mark" id="opMark">SAVE US</p>
+  </div>
+</div>
+
 <div id="printroot"></div>
 
 <script src="i18n/ko.js"></script>
 <script src="links.js"></script>
 <script src="media.js"></script>
 <script src="design.js"></script>
+<script src="alarm-education.js"></script>
+<script src="shelter.js"></script>
+<script src="advisory.js"></script>
 <script>
 "use strict";
 
@@ -904,8 +969,10 @@ var SIT_ICON={
 /* 항목 구성과 수치는 첨부 참고문서를 그대로 따른다.
    소아·영아 지침은 문서에 없으므로 화면에서 그 사실을 밝힌다. */
 var EMG_ORDER=["cpr","choke","bleed","burn","fracture","heart","stroke",
-               "seizure","anaphylaxis","heat","hypothermia","poison","drown","lowsugar"];
-var EMG_MILD={burn:1,fracture:1,hypothermia:1,lowsugar:1};
+               "seizure","anaphylaxis","heat","hypothermia","poison","drown","lowsugar",
+               "fever"];
+/* 발열은 가장 흔하지만 가장 급하지는 않다. 급한 항목 위에 두면 순서가 거짓말을 한다. */
+var EMG_MILD={burn:1,fracture:1,hypothermia:1,lowsugar:1,fever:1};
 var EMG_QUICK=["cpr","bleed","choke"];
 var EMG_ICON={
   cpr:'<path d="M12 21s-7-4.4-7-9.6A4.4 4.4 0 0 1 12 8a4.4 4.4 0 0 1 7 3.4C19 16.6 12 21 12 21z"/><path d="M3 12.5h3l1.5-2.5 2 4 1.5-2h2"/>',
@@ -918,6 +985,7 @@ var EMG_ICON={
   seizure:'<path d="M2 12h3l2.5-7 3.5 14 3-10 2 3h6"/>',
   anaphylaxis:'<path d="M12 4a8 8 0 1 0 8 8"/><path d="M12 8v4l3 2"/><path d="M16.5 3.5 20 7"/><path d="M20 3.5h.01"/>',
   heat:'<circle cx="12" cy="17" r="3.2"/><path d="M12 13.8V5a2 2 0 0 1 4 0"/><path d="M18 7h3M18 11h3"/>',
+  fever:'<path d="M10 13.5V5a2 2 0 1 1 4 0v8.5a4 4 0 1 1-4 0z"/><path d="M12 9.5v4"/><path d="M17 6h3M17 10h3"/>',
   hypothermia:'<path d="M12 2v20M4 6l16 12M20 6 4 18"/>',
   poison:'<path d="M9 3h6v4l3.2 6.5A3 3 0 0 1 15.5 18h-7a3 3 0 0 1-2.7-4.5L9 7z"/><path d="M10 12h.01M14 14h.01"/>',
   drown:'<path d="M2 18c2 0 2-1.6 4-1.6s2 1.6 4 1.6 2-1.6 4-1.6 2 1.6 4 1.6 2-1.6 4-1.6"/><path d="M8 13 12 4l4 9"/><circle cx="12" cy="13.5" r="1"/>',
@@ -989,6 +1057,14 @@ function viewHome(){
     '<span style="flex:1"><b>'+h(t("home.alertT"))+'</b><span>'+h(t("home.alertS"))+'</span></span>'+
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;flex:0 0 auto"><path d="m9 18 6-6-6-6"/></svg>'+
   '</button>'+
+
+  /* 대피소와 해외 동향은 급히 누를 것이 아니라 평소에 찾아 두는 것이다.
+     빨간 경보 카드와 같은 무게로 두면 경보의 긴급함이 묻힌다. */
+  (LANG==="ko" && (window.SaveusShelter || window.SaveusAdvisory) ?
+    '<p class="sec-title">미리 찾아두기</p><div class="card steps">'+
+      (window.SaveusShelter ? window.SaveusShelter.row() : '')+
+      (window.SaveusAdvisory ? window.SaveusAdvisory.row() : '')+
+    '</div>' : '')+
 
   '<div class="card statgrid">'+
     '<div class="stat"><b>'+N+'</b><span>'+h(t("home.stPeople"))+'</span></div>'+
@@ -1130,6 +1206,7 @@ function viewAct(){
         '<span style="font-size:calc(12px * var(--ts));font-weight:700;color:var(--dim);text-align:right;max-width:40%">'+h(r[1])+'</span></div>';
     }).join('')+
   '</div>'+
+  (LANG==="ko" && window.SaveusAlarmEducation ? window.SaveusAlarmEducation.markup() : '')+
   '<p class="sec-title">'+h(t("act.telT"))+'</p><div class="card">'+
     (D("act.tels")||[]).map(function(r){
       return '<a class="tel" href="tel:'+h(telHref(r[0]))+'">'+
@@ -1615,6 +1692,7 @@ function openSheet(title, body, noBack){
   d.querySelector(".sheet-b").scrollTop=0;
 }
 function closeSheet(){
+  if(window.SaveusAlarmEducation) window.SaveusAlarmEducation.stop();
   /* 코치나 읽어주기를 켜 둔 채 화면을 닫으면 소리가 남는다 */
   if(sheet && sheet.dataset.coach) cprStop();
   if(READ.on) readStop();
@@ -1674,6 +1752,163 @@ function syncSeg(act,val){
   for(var i=0;i<ns.length;i++) ns[i].setAttribute("aria-pressed", String(ns[i].dataset.v===String(val)));
 }
 
+/* 세이브어스: 건의 및 불편 신고. 기존 앱의 메인 script 안에 삽입 */
+var FEEDBACK_EMAIL = 'the.or.corp@gmail.com';
+/* 이 값은 빌드할 때 android/app/build.gradle 의 versionName 으로 자동 교체된다. */
+var FEEDBACK_VERSION = '1.0.0';
+var FEEDBACK_KEY = 'saveus.feedback.draft.v1';
+/* 유형은 번역되지만 메일 본문에는 한국어로 적는다. 받는 사람이 한국어로 읽는다. */
+var FEEDBACK_TYPES = ['feature', 'bug', 'content', 'other'];
+var FEEDBACK_TYPE_KO = {feature:'기능 제안', bug:'오류 신고', content:'안내 내용 수정', other:'기타'};
+var FEEDBACK_TYPE_I18N = {feature:'fb.ty1', bug:'fb.ty2', content:'fb.ty3', other:'fb.ty4'};
+var feedbackMemory = { type: 'feature', text: '' };
+
+function feedbackSafeText(text) {
+  return Array.from(text).map(function(ch) {
+    return ch.length === 1 && /[\uD800-\uDFFF]/.test(ch) ? '\uFFFD' : ch;
+  }).join('');
+}
+function feedbackNormalize(value) {
+  value = value && typeof value === 'object' ? value : {};
+  return {
+    type: FEEDBACK_TYPES.indexOf(value.type) >= 0 ? value.type : FEEDBACK_TYPES[0],
+    text: typeof value.text === 'string' ? feedbackSafeText(value.text).slice(0, 1000).replace(/[\uD800-\uDBFF]$/, '') : ''
+  };
+}
+function feedbackLoad() {
+  try {
+    var stored = localStorage.getItem(FEEDBACK_KEY);
+    if (stored) feedbackMemory = feedbackNormalize(JSON.parse(stored));
+  } catch (_) { /* 저장 제한 또는 손상 시 메모리 초안 사용 */ }
+  return feedbackNormalize(feedbackMemory);
+}
+function feedbackReadForm() {
+  var type = document.getElementById('feedbackType');
+  var text = document.getElementById('feedbackText');
+  return feedbackNormalize(type && text ? {type: type.value, text: text.value} : feedbackMemory);
+}
+function feedbackPersist() {
+  feedbackMemory = feedbackReadForm();
+  var saved = true;
+  try { localStorage.setItem(FEEDBACK_KEY, JSON.stringify(feedbackMemory)); }
+  catch (_) { saved = false; }
+  var status = document.getElementById('feedbackDraftStatus');
+  if (status) status.textContent = t(saved ? 'fb.saved' : 'fb.unsaved');
+  return feedbackMemory;
+}
+function feedbackBody(draft) {
+  /* 본문 뼈대는 한국어로 고정한다. 읽는 사람이 한국어 담당자다. */
+  return ['[세이브어스 건의 및 불편 신고]',
+    '유형: ' + (FEEDBACK_TYPE_KO[draft.type] || draft.type), '',
+    draft.text.trim(), '', '--- 앱 정보 ---', '버전: ' + FEEDBACK_VERSION,
+    '사용 언어: ' + LANG].join('\n');
+}
+function feedbackMailto(draft) {
+  return 'mailto:' + FEEDBACK_EMAIL + '?subject=' +
+    encodeURIComponent('[세이브어스] ' + (FEEDBACK_TYPE_KO[draft.type] || draft.type)) +
+    '&body=' + encodeURIComponent(feedbackBody(draft));
+}
+function feedbackRefresh() {
+  var draft = feedbackPersist();
+  var preview = document.getElementById('feedbackPreview');
+  if (preview) preview.textContent = feedbackBody(draft);
+  var count = document.getElementById('feedbackCount');
+  if (count) count.textContent = t('fb.count', {n: draft.text.length});
+}
+function showFeedback() {
+  var draft = feedbackLoad();
+  openSheet(t('fb.t'),
+    '<div class="card" id="feedbackForm">' +
+      '<div class="field"><p class="fbnote danger">' + t('fb.lead') + '</p>' +
+        '<p class="fbnote">' + h(t('fb.priv')) + '</p>' +
+        (t('fb.replyKo') ? '<p class="fbnote">' + h(t('fb.replyKo')) + '</p>' : '') + '</div>' +
+      '<div class="field"><label for="feedbackType">' + h(t('fb.typeL')) + '</label>' +
+        '<select id="feedbackType">' +
+        FEEDBACK_TYPES.map(function(key) {
+          return '<option value="' + key + '"' + (key === draft.type ? ' selected' : '') + '>' +
+            h(t(FEEDBACK_TYPE_I18N[key])) + '</option>';
+        }).join('') + '</select></div>' +
+      '<div class="field"><label for="feedbackText">' + h(t('fb.textL')) + '</label>' +
+        '<textarea id="feedbackText" rows="7" maxlength="1000" required ' +
+        'aria-describedby="feedbackCount feedbackDraftStatus" ' +
+        'placeholder="' + h(t('fb.ph')) + '">' + h(draft.text) + '</textarea>' +
+        '<p class="fbnote right" id="feedbackCount"></p></div>' +
+      '<div class="field"><p class="fbnote" id="feedbackDraftStatus" role="status"></p>' +
+        '<p class="fbnote"><b>' + h(t('fb.to')) + '</b> ' + h(FEEDBACK_EMAIL) + '</p>' +
+        '<details><summary class="fbsum">' + h(t('fb.prev')) + '</summary>' +
+        '<pre id="feedbackPreview" class="fbprev"></pre></details></div>' +
+      '<div class="field"><p class="fbnote">' + h(t('fb.note')) + '</p>' +
+        '<button type="button" class="btn block" id="feedbackSend">' + h(t('fb.send')) + '</button>' +
+        '<div class="btnrow">' +
+          '<button type="button" class="btn ghost" id="feedbackCopy">' + h(t('fb.copy')) + '</button>' +
+          '<button type="button" class="btn ghost" id="feedbackAddress">' + h(t('fb.copyaddr')) + '</button>' +
+        '</div>' +
+        '<button type="button" class="btn ghost block" id="feedbackClear">' + h(t('fb.clear')) + '</button>' +
+        '<p class="fbnote" id="feedbackStatus" role="status" aria-live="polite"></p></div>' +
+    '</div>');
+  document.getElementById('feedbackText').addEventListener('input', feedbackRefresh);
+  document.getElementById('feedbackType').addEventListener('change', feedbackRefresh);
+  document.getElementById('feedbackSend').onclick = function() {
+    var draft = feedbackPersist();
+    if (!draft.text.trim()) {
+      document.getElementById('feedbackStatus').textContent = t('fb.needText');
+      document.getElementById('feedbackText').focus();
+      return;
+    }
+    document.getElementById('feedbackStatus').textContent = t('fb.opening');
+    /* 사용자의 클릭 안에서 실행. 전송 완료로 표시하거나 적은 내용을 지우지 않는다. */
+    try { window.location.href = feedbackMailto(draft); }
+    catch (_) { document.getElementById('feedbackStatus').textContent = t('fb.cantOpen'); }
+  };
+  document.getElementById('feedbackCopy').onclick = function() { feedbackCopy(feedbackBody(feedbackPersist())); };
+  document.getElementById('feedbackAddress').onclick = function() { feedbackCopy(FEEDBACK_EMAIL); };
+  /* 지우기는 두 번 눌러야 한다. 길게 쓴 내용을 한 번의 오타로 잃지 않도록. */
+  var clearArmed = false;
+  document.getElementById('feedbackClear').onclick = function() {
+    var btn = this;
+    if (!clearArmed) {
+      clearArmed = true;
+      btn.textContent = t('fb.clearAsk');
+      btn.classList.add('arm');
+      setTimeout(function() {
+        if (!clearArmed) return;
+        clearArmed = false; btn.textContent = t('fb.clear'); btn.classList.remove('arm');
+      }, 4000);
+      return;
+    }
+    clearArmed = false;
+    btn.textContent = t('fb.clear'); btn.classList.remove('arm');
+    document.getElementById('feedbackText').value = '';
+    document.getElementById('feedbackType').value = FEEDBACK_TYPES[0];
+    feedbackRefresh();
+    document.getElementById('feedbackStatus').textContent = t('fb.cleared');
+  };
+  feedbackRefresh();
+}
+
+function feedbackCopy(text) {
+  function status(message) {
+    var el = document.getElementById('feedbackStatus');
+    if (el) el.textContent = message;
+  }
+  function fallback() {
+    var area = document.createElement('textarea');
+    area.value = text;
+    area.style.cssText = 'position:fixed;left:0;top:0;opacity:0';
+    document.body.appendChild(area);
+    area.focus(); area.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (_) {}
+    area.remove();
+    status(t(ok ? 'fb.copied' : 'fb.copyFail'));
+  }
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function() { status(t('fb.copied')); }, fallback);
+    } else fallback();
+  } catch (_) { fallback(); }
+}
+
 function showSetup(first){
   function ctr(key,max){
     if(max) CTR_MAX[key]=max;
@@ -1695,6 +1930,7 @@ function showSetup(first){
   '</div>':'')+
 
   themeSettings()+
+  (first?'':'<div class="card"><div class="field"><button type="button" class="btn ghost block" data-act="feedback">'+h(t("fb.t"))+'</button></div></div>')+
   (first?'':
   '<p class="sec-title">'+h(t("setup.display"))+'</p><div class="card">'+
     '<div class="field"><label>'+h(t("setup.lang"))+'</label>'+
@@ -2162,6 +2398,7 @@ function render(){
   document.getElementById("main").scrollTop=0;
 }
 function go(tb){
+  if(window.SaveusAlarmEducation) window.SaveusAlarmEducation.stop();
   cprStop(); if(READ.on) readStop();
   tab=tb; render();
   /* 응급상황 안내는 처음 열 때 한 번 고지한다 */
@@ -2194,6 +2431,8 @@ document.body.addEventListener("click",function(e){
   if(a==="sit"){ showSituation(b.dataset.id); return; }
   if(a==="emg"){ showEmergency(b.dataset.id); return; }
   if(a==="coach"){ showCoach(); return; }
+  if(a==="shelter" && window.SaveusShelter){ window.SaveusShelter.open(); return; }
+  if(a==="advisory" && window.SaveusAdvisory){ window.SaveusAdvisory.open(); return; }
   if(a==="cprtoggle"){ if(CPR.on) cprStop(); else cprStart(); return; }
   if(a==="cprbpm"){ CPR.bpm=+b.dataset.v; syncSeg("cprbpm",CPR.bpm);
     if(CPR.on && CPR.ctx) CPR.next=CPR.ctx.currentTime+0.05; return; }
@@ -2205,6 +2444,7 @@ document.body.addEventListener("click",function(e){
   if(a==="readsteps"){ readSteps(b.dataset.id); return; }
   if(a==="goemg"){ go("emg"); return; }
   if(a==="emgack"){ try{ localStorage.setItem(LS_ACK,"1"); }catch(e){} closeSheet(); return; }
+  if(a==="feedback"){ showFeedback(); return; }
   if(a==="legal"){ showLegal(); return; }
   if(a==="siren"){ go("act"); showSituation("siren"); return; }
   if(a==="gocard"){ go("card"); return; }
@@ -2314,6 +2554,91 @@ document.body.addEventListener("input",function(e){
   ECARD[tg.dataset.ec]=tg.value; persistE();
 });
 
+/* ===================== 여는 화면 =====================
+   재난 앱이다. 새벽에 아이가 아파서 여는 사람에게 강아지가 경례하는 2.7초는
+   그만큼 늦어지는 응급처치다. 그래서 세 가지를 지킨다.
+     - 어디를 눌러도 즉시 건너뛴다
+     - 하루에 한 번만 보여 준다
+     - 앱은 뒤에서 이미 떠 있다. 여는 화면이 시간을 더하지 않는다
+   화면을 흔드는 것을 싫어한다고 기기에 설정해 둔 사람에게는 틀지 않는다. */
+var LS_OPEN = "saveus.opening.v1";
+
+function openingDay(){
+  var d = new Date();
+  return d.getFullYear() + "-" + (d.getMonth()+1) + "-" + d.getDate();
+}
+function openingDue(){
+  if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
+  try { return localStorage.getItem(LS_OPEN) !== openingDay(); } catch(e){ return true; }
+}
+/* 네이티브 스플래시를 우리가 직접 내린다. 자동으로 내려가기를 기다리면
+   영상이 그 뒤에서 이미 돌고 있어 앞부분을 놓친다. 수동 호출이 실패해도
+   capacitor.config.json 의 launchShowDuration 이 안전망으로 남는다. */
+function hideNativeSplash(){
+  try {
+    var C = window.Capacitor, S = C && C.Plugins && C.Plugins.SplashScreen;
+    if (S && S.hide) S.hide({ fadeOutDuration: 120 });
+  } catch(e){}
+}
+
+function runOpening(done){
+  var box = document.getElementById("opening");
+  var vid0 = document.getElementById("opVid");
+  /* 영상을 못 다루는 환경이면 여는 화면을 통째로 건너뛴다. 오래된 웹뷰나
+     영상이 빠진 빌드에서 앱이 검은 화면에 갇히면 안 된다. */
+  if (!box || !vid0 || typeof vid0.play !== "function" || !openingDue()) {
+    hideNativeSplash(); done(); return;
+  }
+  try { localStorage.setItem(LS_OPEN, openingDay()); } catch(e){}
+
+  var vid  = document.getElementById("opVid");
+  var tag  = document.getElementById("opTag");
+  var mark = document.getElementById("opMark");
+  var voice = null, timers = [], finished = false;
+
+  tag.textContent = t("open.tag");
+  box.hidden = false;
+
+  function at(ms, fn){ timers.push(setTimeout(fn, ms)); }
+
+  function finish(){
+    if (finished) return;
+    finished = true;
+    for (var i=0;i<timers.length;i++) clearTimeout(timers[i]);
+    try { vid.pause(); } catch(e){}
+    if (voice) { try { voice.pause(); } catch(e){} }
+    box.dataset.out = "1";
+    setTimeout(function(){ box.hidden = true; box.remove(); }, 260);
+    done();
+  }
+
+  /* 어디를 눌러도 건너뛴다. 화면 전체가 건너뛰기 버튼이다. */
+  box.addEventListener("pointerdown", finish);
+  box.addEventListener("keydown", finish);
+
+  /* 영상이 없거나 못 틀면 기다리지 않는다 */
+  vid.addEventListener("error", finish);
+  at(6000, finish);                       /* 무슨 일이 있어도 6초 안에는 끝낸다 */
+
+  vid.addEventListener("playing", hideNativeSplash, { once: true });
+  vid.addEventListener("ended", function(){ at(120, finish); });
+
+  /* 경례가 1.35초에 끝난다. 그때 SAVE US 와 목소리가 함께 나온다. */
+  at(900,  function(){ tag.dataset.on = "1"; });
+  at(1350, function(){
+    mark.dataset.on = "1";
+    try {
+      voice = new Audio("video/saveus.m4a");
+      var pr = voice.play();
+      /* 웹 브라우저는 소리 있는 자동재생을 막는다. 막히면 조용히 넘어간다. */
+      if (pr && pr.catch) pr.catch(function(){});
+    } catch(e){}
+  });
+
+  var pr = vid.play();
+  if (pr && pr.catch) pr.catch(finish);
+}
+
 /* ===================== 시작 ===================== */
 applyTheme();
 applyTs();
@@ -2324,9 +2649,13 @@ applyTs();
     if(!ok && want!=="ko") return setLang("ko");
   }).then(function(){
     render();
-    if(!P.ready){
-      if(chosen) showSetup(true); else showLang(true);
-    }
+    /* 앱을 먼저 세워 두고 그 위에서 여는 화면을 튼다. 여는 화면이 끝났을 때
+       기다릴 것이 남아 있으면 안 된다. */
+    runOpening(function(){
+      if(!P.ready){
+        if(chosen) showSetup(true); else showLang(true);
+      }
+    });
   });
 })();
 </script>

@@ -1,8 +1,10 @@
 /* 세이브어스 — 인터넷 없이도 열리게 한다.
    한 번 방문하면 모든 파일을 담아 두고, 다음부터는 담아 둔 것을 먼저 쓴다.
    새 버전을 올리면 CACHE 이름이 바뀌어 통째로 다시 받는다. */
-const CACHE = "saveus-202611031159";
+const CACHE = "saveus-202611050740";
 const ASSETS = [
+ "./advisory.js",
+ "./alarm-education.js",
  "./design.css",
  "./design.js",
  "./i18n/en.js",
@@ -28,6 +30,11 @@ const ASSETS = [
  "./links.js",
  "./manifest.webmanifest",
  "./media.js",
+ "./shelter.js",
+ "./video/opening.mp4",
+ "./video/saveus.m4a",
+ "./voice/ko/alarm/intro.m4a",
+ "./voice/ko/alarm/outro.m4a",
  "./voice/ko/f/arms.m4a",
  "./voice/ko/f/arms2.m4a",
  "./voice/ko/f/call.m4a",
