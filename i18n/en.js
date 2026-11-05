@@ -603,7 +603,6 @@ item:{
   kennel:{ n:"Carrier, lead, harness", u:"sets", d:"Many shelters do not take animals. Arrange somewhere in advance" },
   petdoc:{ n:"Vaccination record, registration copy, photo", u:"sets", d:"Shelters ask for it, and it is what proves the animal is yours if it goes missing" }
 },
-open:{ tag:"Protect the people you love" },
 fb:{
   t:"Suggestions and problems",
   lead:"This is for fixing the app. <b>It is not a way to call for help.</b> In an emergency, phone 119.",

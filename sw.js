@@ -1,7 +1,7 @@
 /* 세이브어스 — 인터넷 없이도 열리게 한다.
    한 번 방문하면 모든 파일을 담아 두고, 다음부터는 담아 둔 것을 먼저 쓴다.
    새 버전을 올리면 CACHE 이름이 바뀌어 통째로 다시 받는다. */
-const CACHE = "saveus-202611050740";
+const CACHE = "saveus-202611051323";
 const ASSETS = [
  "./advisory.js",
  "./alarm-education.js",
@@ -14,6 +14,13 @@ const ASSETS = [
  "./img/act-check.webp",
  "./img/act-guide.webp",
  "./img/act-pack.webp",
+ "./img/coach/arms.webp",
+ "./img/coach/call.webp",
+ "./img/coach/hands.webp",
+ "./img/coach/lay.webp",
+ "./img/coach/press.webp",
+ "./img/coach/speaker.webp",
+ "./img/coach/swap.webp",
  "./img/face-calm.webp",
  "./img/face-focus.webp",
  "./img/face-happy.webp",

@@ -449,31 +449,18 @@ a.tel:active{background:var(--sunk)}
        box-shadow:0 6px 24px rgba(0,0,0,.3);max-width:86%;text-align:center}
 
 /* ---------- 여는 화면 ----------
-   바탕색 #16212D 는 영상 파일에 넣은 #18212D 가 아니다. 영상은 limited
-   range YUV 로 저장되므로 디코딩하면 #16212D 로 돌아온다. 파일에 적은 값을
-   그대로 쓰면 영상 테두리를 따라 가로줄이 보인다. 눈이 가장 잘 잡아내는
-   종류의 차이다. 글자는 영상 안에 구워 넣지 않고
-   여기서 얹는다. 네 언어로 번역되어야 하고, 글자가 또렷해야 한다. */
-#opening{position:fixed;inset:0;z-index:200;background:#16212D;
+   영상에 글자가 구워져 있다. 그래서 앱은 아무것도 얹지 않는다.
+   바탕색 #0D3112 는 영상을 디코딩했을 때 나오는 값을 그대로 적은 것이다.
+   화면 비율이 9:16 이 아니면 영상 위아래에 이 색이 깔리는데, 한 단계라도
+   다르면 영상 테두리를 따라 가로줄이 보인다. 눈이 가장 잘 잡아내는
+   종류의 차이다. 영상을 바꾸면 이 값도 다시 재야 한다. */
+#opening{position:fixed;inset:0;z-index:200;background:#0D3112;
          display:grid;place-items:center;overflow:hidden;
          transition:opacity .25s ease}
 #opening[data-out="1"]{opacity:0}
 .op-stage{position:relative;height:100%;width:100%;max-width:calc(100vh * 9 / 16);
           margin:0 auto}
 #opVid{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
-.op-tag,.op-mark{position:absolute;left:0;right:0;margin:0;text-align:center;
-                 opacity:0;transition:opacity .45s ease, transform .45s ease;
-                 color:#fff;text-wrap:balance;padding:0 22px}
-.op-tag{top:7.5%;transform:translateY(8px);
-        font-size:clamp(19px, 5.6vw, 29px);font-weight:800;letter-spacing:-.4px;
-        line-height:1.35}
-.op-mark{bottom:7%;transform:translateY(-8px);
-         font-size:clamp(26px, 8.2vw, 42px);font-weight:800;letter-spacing:.22em;
-         text-indent:.22em;color:#F08343}
-.op-tag[data-on="1"],.op-mark[data-on="1"]{opacity:1;transform:none}
-@media (prefers-reduced-motion: reduce){
-  .op-tag,.op-mark{transition:none}
-}
 
 /* ---------- 건의 및 불편 신고 ---------- */
 .fbnote{font-size:calc(12.5px * var(--ts));color:var(--dim);line-height:1.6}
@@ -648,8 +635,6 @@ a.tel:active{background:var(--sunk)}
   <div class="op-stage">
     <video id="opVid" muted playsinline preload="auto" disablepictureinpicture
            src="video/opening.mp4"></video>
-    <p class="op-tag" id="opTag"></p>
-    <p class="op-mark" id="opMark">SAVE US</p>
   </div>
 </div>
 
@@ -2568,6 +2553,8 @@ function openingDay(){
   return d.getFullYear() + "-" + (d.getMonth()+1) + "-" + d.getDate();
 }
 function openingDue(){
+  /* 영상 속 문구는 한국어지만 모든 언어에 똑같이 보여 준다. 브랜드를
+     보여 주는 2.4초이고, 캐릭터와 SAVE US 는 언어를 타지 않는다. */
   if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
   try { return localStorage.getItem(LS_OPEN) !== openingDay(); } catch(e){ return true; }
 }
@@ -2592,11 +2579,8 @@ function runOpening(done){
   try { localStorage.setItem(LS_OPEN, openingDay()); } catch(e){}
 
   var vid  = document.getElementById("opVid");
-  var tag  = document.getElementById("opTag");
-  var mark = document.getElementById("opMark");
   var voice = null, timers = [], finished = false;
 
-  tag.textContent = t("open.tag");
   box.hidden = false;
 
   function at(ms, fn){ timers.push(setTimeout(fn, ms)); }
@@ -2620,20 +2604,47 @@ function runOpening(done){
   vid.addEventListener("error", finish);
   at(6000, finish);                       /* 무슨 일이 있어도 6초 안에는 끝낸다 */
 
+  /* 영상 바깥 여백 색을 영상에서 직접 읽어 맞춘다.
+     파일에는 한 가지 색이 들어 있지만, YUV 를 RGB 로 바꾸는 셈법이 ffmpeg
+     과 브라우저가 다르고 기기마다도 다르다. 상수를 적어 두면 어딘가에서는
+     영상 테두리를 따라 가로줄이 보인다. 화면에 실제로 그려진 픽셀을 읽으면
+     어떤 셈법을 쓰든 정확히 맞고, 영상을 바꿔도 다시 잴 필요가 없다.
+     CSS 에 적힌 값은 이것이 실패했을 때의 대비책이다. */
+  vid.addEventListener("loadeddata", function(){
+    try {
+      var cv = document.createElement("canvas");
+      cv.width = cv.height = 1;
+      var g = cv.getContext("2d", { willReadFrequently: true });
+      g.drawImage(vid, 0, 0, 3, 3, 0, 0, 1, 1);   /* 왼쪽 위 모서리 */
+      var d = g.getImageData(0, 0, 1, 1).data;
+      if (d[3] > 0) box.style.background = "rgb(" + d[0] + "," + d[1] + "," + d[2] + ")";
+    } catch(e){}
+  }, { once: true });
+
   vid.addEventListener("playing", hideNativeSplash, { once: true });
   vid.addEventListener("ended", function(){ at(120, finish); });
 
-  /* 경례가 1.35초에 끝난다. 그때 SAVE US 와 목소리가 함께 나온다. */
-  at(900,  function(){ tag.dataset.on = "1"; });
-  at(1350, function(){
-    mark.dataset.on = "1";
-    try {
-      voice = new Audio("video/saveus.m4a");
-      var pr = voice.play();
-      /* 웹 브라우저는 소리 있는 자동재생을 막는다. 막히면 조용히 넘어간다. */
-      if (pr && pr.catch) pr.catch(function(){});
-    } catch(e){}
-  });
+  /* 경례하는 손이 머리에 닿는 순간이 0.85초다(영상을 프레임 단위로 재서
+     얻은 값). 거기에 목소리를 맞춘다.
+     벽시계로 재면 안 된다. 영상을 불러오고 재생이 시작되기까지 걸리는
+     시간이 기기와 그날 사정에 따라 다르다. 영상 자신의 재생 시간을 보고
+     맞춰야 느린 기기에서도 손과 소리가 같이 간다. */
+  var VOICE_AT = 0.85, voiceFired = false;
+  function watchVoice(){
+    if (finished || voiceFired) return;
+    if (vid.currentTime >= VOICE_AT) {
+      voiceFired = true;
+      try {
+        voice = new Audio("video/saveus.m4a");
+        var pr = voice.play();
+        /* 웹 브라우저는 소리 있는 자동재생을 막는다. 막히면 조용히 넘어간다. */
+        if (pr && pr.catch) pr.catch(function(){});
+      } catch(e){}
+      return;
+    }
+    requestAnimationFrame(watchVoice);
+  }
+  vid.addEventListener("playing", function(){ requestAnimationFrame(watchVoice); }, { once: true });
 
   var pr = vid.play();
   if (pr && pr.catch) pr.catch(finish);
